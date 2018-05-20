@@ -1,4 +1,4 @@
 Source: soci
-Version: 2016.10.22-1
+Version: 3.2.3
 Build-Depends: boost-date-time, sqlite3
 Description: SOCI database access library

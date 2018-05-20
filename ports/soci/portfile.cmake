@@ -2,8 +2,8 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO SOCI/soci
-    REF 6eb1a3e9775ab7cdbf0f7f5aa5891792313cd8d9
-    SHA512 0d0127e422934c5ac707184b519b7682cb67d1480ebecf56520d085c9d29381075c1e2f7bfd8f5b7873ce3cc8ce35ba793e06f0c1f8bb506a83949cd27d15015
+    REF 3.2.3
+    SHA512 8c597b37efe82c85e6d951f66cb0f818d2c12cb673914bc7b322bc0a9da676e6c02f221c9104fb06d1b4b02fed4e5a4fb872dd3370b9117f248c3b948faf4fb3
     HEAD_REF master
 )
 
