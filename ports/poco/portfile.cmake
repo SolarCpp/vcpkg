@@ -45,26 +45,40 @@ vcpkg_configure_cmake(
 
 vcpkg_install_cmake()
 
-file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools)
-file(RENAME ${CURRENT_PACKAGES_DIR}/bin/cpspc.exe ${CURRENT_PACKAGES_DIR}/tools/cpspc.exe)
-file(RENAME ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.exe ${CURRENT_PACKAGES_DIR}/tools/f2cpsp.exe)
+
+if(WIN32)
+    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools)
+    file(RENAME ${CURRENT_PACKAGES_DIR}/bin/cpspc.exe ${CURRENT_PACKAGES_DIR}/tools/cpspc.exe)
+    file(RENAME ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.exe ${CURRENT_PACKAGES_DIR}/tools/f2cpsp.exe)
+elseif(LINUX)
+    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools)
+    file(COPY ${CURRENT_PACKAGES_DIR}/bin/cpspc ${CURRENT_PACKAGES_DIR}/tools/cpspc)
+    file(COPY ${CURRENT_PACKAGES_DIR}/bin/f2cpsp ${CURRENT_PACKAGES_DIR}/tools/f2cpsp)
+endif()
+
 
 if (VCPKG_LIBRARY_LINKAGE STREQUAL static)
     file(REMOVE_RECURSE 
         ${CURRENT_PACKAGES_DIR}/bin
         ${CURRENT_PACKAGES_DIR}/debug/bin)
 else()
-    file(REMOVE 
-        ${CURRENT_PACKAGES_DIR}/bin/cpspc.pdb
-        ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.pdb
-        ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.exe
-        ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.pdb
-        ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.exe
-        ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.pdb)
+    if(WIN32)
+        file(REMOVE 
+            ${CURRENT_PACKAGES_DIR}/bin/cpspc.pdb
+            ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.pdb
+            ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.exe
+            ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.pdb
+            ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.exe
+            ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.pdb)
+    elseif(LINUX)
+        file(REMOVE_RECURSE 
+            ${CURRENT_PACKAGES_DIR}/bin
+            ${CURRENT_PACKAGES_DIR}/debug/bin)
+    endif()
 endif()
 
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/poco)
+vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/Poco)
 
 # copy license
 file(COPY ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/poco)
