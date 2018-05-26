@@ -1,0 +1,4 @@
+Source: cpp-bredis
+Version: 0.0.4
+Build-Depends: boost-asio, boost-variant
+Description: boost-asio low-level redis client connector 

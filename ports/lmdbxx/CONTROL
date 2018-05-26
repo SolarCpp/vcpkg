@@ -1,0 +1,4 @@
+Source: lmdbxx
+Version: 1.0.0
+Description: C++ wrapper for lmdb
+Build-Depends: lmdb
