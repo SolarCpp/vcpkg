@@ -53,6 +53,11 @@ vcpkg_configure_cmake(
 vcpkg_install_cmake()
 vcpkg_copy_pdbs()
 
+# if(LINUX)
+    file(REMOVE ${CURRENT_PACKAGES_DIR}/debug/lib/libhdf5.settings)
+    file(REMOVE ${CURRENT_PACKAGES_DIR}/lib/libhdf5.settings)
+# endif()
+
 file(RENAME ${CURRENT_PACKAGES_DIR}/share/hdf5/data/COPYING ${CURRENT_PACKAGES_DIR}/share/hdf5/copyright)
 
 vcpkg_fixup_cmake_targets(CONFIG_PATH share/hdf5)

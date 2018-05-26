@@ -47,6 +47,13 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     if(EXISTS ${CURRENT_PACKAGES_DIR}/debug/lib/libpng16_staticd.lib)
         file(RENAME ${CURRENT_PACKAGES_DIR}/debug/lib/libpng16_staticd.lib ${CURRENT_PACKAGES_DIR}/debug/lib/libpng16d.lib)
     endif()
+
+    if(EXISTS ${CURRENT_PACKAGES_DIR}/lib/libpng16.a)
+        file(RENAME ${CURRENT_PACKAGES_DIR}/lib/libpng16.a ${CURRENT_PACKAGES_DIR}/lib/libpng.a)
+    endif()
+    if(EXISTS ${CURRENT_PACKAGES_DIR}/debug/lib/libpng16d.a)
+        file(RENAME ${CURRENT_PACKAGES_DIR}/debug/lib/libpng16d.a ${CURRENT_PACKAGES_DIR}/debug/lib/libpngd.a)
+    endif()
 endif()
 
 # Remove CMake config files as they are incorrectly generated and everyone uses built-in FindPNG anyway.
