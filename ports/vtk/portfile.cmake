@@ -295,14 +295,19 @@ file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets.cmake" "${VTK_TARGETS_C
 
 # =============================================================================
 # Move executable to tools directory and clean-up other directories
+if(WIN32)
 file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools/vtk)
+endif()
+
 
 function(_vtk_move_tool TOOL_NAME)
+if(WIN32)
     if(EXISTS ${CURRENT_PACKAGES_DIR}/bin/${TOOL_NAME}.exe)
         file(RENAME ${CURRENT_PACKAGES_DIR}/bin/${TOOL_NAME}.exe ${CURRENT_PACKAGES_DIR}/tools/vtk/${TOOL_NAME}.exe)
     endif()
 
     file(REMOVE ${CURRENT_PACKAGES_DIR}/debug/bin/${TOOL_NAME}.exe)
+endif()
 endfunction()
 
 set(VTK_TOOLS
