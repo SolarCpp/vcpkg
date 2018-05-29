@@ -22,6 +22,7 @@ vcpkg_from_github(
     HEAD_REF master
     PATCHES
         ${CMAKE_CURRENT_LIST_DIR}/find-gflags.patch
+        ${CMAKE_CURRENT_LIST_DIR}/0001-fix-cmake-config.patch
 )
 
 file(COPY
