@@ -1,0 +1,173 @@
+From 8ee1b40ee63d2469d244a3ecf40fcb946d98cc46 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E9=99=88=E5=BF=97=E8=BE=89?= <chen_zhihui@cdv.com>
+Date: Thu, 7 Jun 2018 13:07:30 +0800
+Subject: [PATCH] add install support
+
+---
+ .gitignore                   |  2 ++
+ CMakeLists.txt               | 68 ++++++++++++++++++++++++++++++++++++++------
+ CMakeSettings.json           | 27 ++++++++++++++++++
+ cmake/package-config.cmakein | 13 +++++++++
+ 4 files changed, 102 insertions(+), 8 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 CMakeSettings.json
+ create mode 100644 cmake/package-config.cmakein
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..95687f6
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,2 @@
++/.vs/
++*.txt.user
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 36249d8..9b6c1cc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,30 @@
+-cmake_minimum_required(VERSION 2.8)
++﻿cmake_minimum_required(VERSION 2.8)
+ 
+-PROJECT(dsn.zookeeper)
++cmake_policy(SET CMP0048 NEW)
++
++PROJECT(zookeeper
++		VERSION 1.0.0
++		)
++#set(zookeeper_MAJOR_VERSION 1)
++#set(zookeeper_MINOR_VERSION 0)
++#set(zookeeper_PATCH_VERSION 0)
++
++set(PROJECT_INCLUDE_INSTALL_DIR include/${PROJECT_NAME} CACHE PATH "Install directory for headers")
++set(PROJECT_LIBRARY_INSTALL_DIR lib CACHE PATH "Install directory for library")
++set(PROJECT_RUNTIME_INSTALL_DIR bin CACHE PATH "Install directory for binaries/dlls")
++set(PROJECT_CONFIG_INSTALL_DIR  share/${PROJECT_NAME} CACHE PATH "Install directory for cmake config files")
++
++set(hdrs
++   "include/config.h"
++   "include/proto.h"
++   "include/recordio.h"
++   "include/winconfig.h"
++   "include/winstdint.h"
++   "include/zookeeper.h"
++   "include/zookeeper.jute.h"
++   "include/zookeeper_log.h"
++   "include/zookeeper_version.h"
++)
+ 
+ set(src 
+ "src/hashtable/hashtable_itr.c"
+@@ -57,7 +81,7 @@ macro(ms_replace_compiler_flags REPLACE_OPTION)
+     endforeach()
+ endmacro(ms_replace_compiler_flags)
+ 
+-if(MSVC)
++if(WIN32)
+ 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+ 	add_definitions(-DWIN32_LEAN_AND_MEAN)        
+ 	add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+@@ -66,13 +90,41 @@ if(MSVC)
+ 	add_definitions(-D_UNICODE)
+ 	add_definitions(-DUNICODE)
+ 	add_definitions(-DDLL_EXPORT)
+-	add_compile_options(-MP)
+-	ms_replace_compiler_flags("STATIC_LINK")
++	#add_compile_options(-MP)
++	#ms_replace_compiler_flags("STATIC_LINK")
+ 	set(src ${src} "src/winport.c")
+-	ADD_LIBRARY(zookeeper_mt SHARED ${src} ${src_generated})
+-	target_link_libraries(zookeeper_mt PRIVATE "ws2_32.lib")	
++	ADD_LIBRARY(zookeeper SHARED ${src} ${src_generated})
++	target_link_libraries(zookeeper PRIVATE "ws2_32.lib")	
+ else()
+-	ADD_LIBRARY(zookeeper_mt STATIC ${src} ${src_generated})
++	ADD_LIBRARY(zookeeper STATIC ${src} ${src_generated})
+ endif()
+ 		
++install(TARGETS ${PROJECT_NAME} 
++		DESTINATION lib
++        EXPORT ${PROJECT_NAME}-targets
++        RUNTIME DESTINATION ${PROJECT_RUNTIME_INSTALL_DIR}
++        LIBRARY DESTINATION ${PROJECT_LIBRARY_INSTALL_DIR}
++        ARCHIVE DESTINATION ${PROJECT_LIBRARY_INSTALL_DIR}
++        )
++
++install(FILES ${hdrs} DESTINATION ${PROJECT_INCLUDE_INSTALL_DIR})
++
++include(CMakePackageConfigHelpers)
++
++set(PROJECT_CONFIG_INSTALL_DIR share/${PROJECT_NAME} )
++
++set(INSTALL_INCLUDE_DIR ${PROJECT_INCLUDE_INSTALL_DIR})
++configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-config.cmakein ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
++                              INSTALL_DESTINATION ${PROJECT_CONFIG_INSTALL_DIR}
++                              PATH_VARS INSTALL_INCLUDE_DIR
++                              )
++
++write_basic_package_version_file( ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion )
++
++install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake 
++				${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
++        DESTINATION ${PROJECT_CONFIG_INSTALL_DIR} )
++
+ 
++install(EXPORT ${PROJECT_NAME}-targets 
++		DESTINATION ${PROJECT_CONFIG_INSTALL_DIR})
+\ No newline at end of file
+diff --git a/CMakeSettings.json b/CMakeSettings.json
+new file mode 100644
+index 0000000..507068e
+--- /dev/null
++++ b/CMakeSettings.json
+@@ -0,0 +1,27 @@
++{
++  // See https://go.microsoft.com//fwlink//?linkid=834763 for more information about this file.
++  "configurations": [
++    {
++      "name": "x64-Debug",
++      "generator": "Ninja",
++      "configurationType": "Debug",
++      "inheritEnvironments": [ "msvc_x64_x64" ],
++      "buildRoot": "E:\\solarcpp-vcbuild\\zookeeper\\${name}",
++      "installRoot": "E:\\solarcpp-vcbuild\\zookeeper\\install\\${name}",
++      "cmakeCommandArgs": "",
++      "buildCommandArgs": "-v",
++      "ctestCommandArgs": ""
++    },
++    {
++      "name": "x64-Release",
++      "generator": "Ninja",
++      "configurationType": "RelWithDebInfo",
++      "inheritEnvironments": [ "msvc_x64_x64" ],
++      "buildRoot": "E:\\solarcpp-vcbuild\\zookeeper\\${name}",
++      "installRoot": "E:\\solarcpp-vcbuild\\zookeeper\\install\\${name}",
++      "cmakeCommandArgs": "",
++      "buildCommandArgs": "-v",
++      "ctestCommandArgs": ""
++    }
++  ]
++}
+\ No newline at end of file
+diff --git a/cmake/package-config.cmakein b/cmake/package-config.cmakein
+new file mode 100644
+index 0000000..e4d631b
+--- /dev/null
++++ b/cmake/package-config.cmakein
+@@ -0,0 +1,13 @@
++@PACKAGE_INIT@
++
++include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")
++
++set(${CMAKE_FIND_PACKAGE_NAME}_INCLUDE_DIR @PACKAGE_INSTALL_INCLUDE_DIR@)
++set(${CMAKE_FIND_PACKAGE_NAME}_INCLUDE_DIRS @PACKAGE_INSTALL_INCLUDE_DIR@)
++set(${CMAKE_FIND_PACKAGE_NAME}_LIBRARIES @PROJECT_NAME@)
++
++string(TOUPPER "${CMAKE_FIND_PACKAGE_NAME}" UPPER_PACKAGE_NAME)
++
++set(${UPPER_PACKAGE_NAME}_INCLUDE_DIR @PACKAGE_INSTALL_INCLUDE_DIR@)
++set(${UPPER_PACKAGE_NAME}_INCLUDE_DIRS @PACKAGE_INSTALL_INCLUDE_DIR@)
++set(${UPPER_PACKAGE_NAME}_LIBRARIES @PROJECT_NAME@)
+-- 
+2.16.1.windows.1
+
