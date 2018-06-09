@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [ValidateNotNullOrEmpty()][string]$disableMetrics = "0",
-    [Parameter(Mandatory=$False)][string]$withVSPath = ""
+    [Parameter(Mandatory=$False)][string]$withVSPath = "",
+    [Parameter(Mandatory=$False)][string]$withWinSDK = ""
 )
 Set-StrictMode -Version Latest
 $scriptsDir = split-path -parent $script:MyInvocation.MyCommand.Definition
@@ -169,7 +170,8 @@ function findAnyMSBuildWithCppPlatformToolset([string]$withVSPath)
     throw "Could not find MSBuild version with C++ support. VS2015 or VS2017 (with C++) needs to be installed."
 }
 function getWindowsSDK( [Parameter(Mandatory=$False)][switch]$DisableWin10SDK = $False,
-                        [Parameter(Mandatory=$False)][switch]$DisableWin81SDK = $False)
+                        [Parameter(Mandatory=$False)][switch]$DisableWin81SDK = $False,
+                        [Parameter(Mandatory=$False)][string]$withWinSDK)
 {
     if ($DisableWin10SDK -and $DisableWin81SDK)
     {
@@ -270,6 +272,19 @@ function getWindowsSDK( [Parameter(Mandatory=$False)][switch]$DisableWin10SDK = 
     }
 
     # Selecting
+    if ($withWinSDK -ne "")
+    {
+        foreach ($instance in $validInstances)
+        {
+            if ($instance -eq $withWinSDK)
+            {
+                return $instance
+            }
+        }
+
+        throw "Could not find the requested Windows SDK version: $withWinSDK"
+    }
+
     foreach ($instance in $validInstances)
     {
         if (!$DisableWin10SDK -and $instance -match "10.")
@@ -289,12 +304,12 @@ function getWindowsSDK( [Parameter(Mandatory=$False)][switch]$DisableWin10SDK = 
 $msbuildExeWithPlatformToolset = findAnyMSBuildWithCppPlatformToolset $withVSPath
 $msbuildExe = $msbuildExeWithPlatformToolset[0]
 $platformToolset = $msbuildExeWithPlatformToolset[1]
-$windowsSDK = getWindowsSDK
+$windowsSDK = getWindowsSDK -withWinSDK $withWinSDK
 
 $arguments = (
 "`"/p:VCPKG_VERSION=-nohash`"",
 "`"/p:DISABLE_METRICS=$disableMetrics`"",
-"/p:Configuration=Release",
+"/p:Configuration=release",
 "/p:Platform=x86",
 "/p:PlatformToolset=$platformToolset",
 "/p:TargetPlatformVersion=$windowsSDK",
@@ -336,5 +351,5 @@ Write-Host "`nBuilding vcpkg.exe... done.`n"
 
 Write-Verbose("Placing vcpkg.exe in the correct location")
 
-Copy-Item $vcpkgSourcesPath\Release\vcpkg.exe $vcpkgRootDir\vcpkg.exe | Out-Null
-Copy-Item $vcpkgSourcesPath\Release\vcpkgmetricsuploader.exe $vcpkgRootDir\scripts\vcpkgmetricsuploader.exe | Out-Null
+Copy-Item $vcpkgSourcesPath\release\vcpkg.exe $vcpkgRootDir\vcpkg.exe | Out-Null
+Copy-Item $vcpkgSourcesPath\release\vcpkgmetricsuploader.exe $vcpkgRootDir\scripts\vcpkgmetricsuploader.exe | Out-Null
