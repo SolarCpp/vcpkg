@@ -10,7 +10,11 @@ set(MASTER_COPY_SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/openssl-${OPENSSL_VERS
 vcpkg_find_acquire_program(PERL)
 
 get_filename_component(PERL_EXE_PATH ${PERL} DIRECTORY)
+if(WIN32)
 set(ENV{PATH} "$ENV{PATH};${PERL_EXE_PATH}")
+else()
+set(ENV{PATH} "$ENV{PATH}:${PERL_EXE_PATH}")
+endif()
 
 vcpkg_download_distfile(OPENSSL_SOURCE_ARCHIVE
     URLS "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz" "https://www.openssl.org/source/old/1.0.2/openssl-${OPENSSL_VERSION}.tar.gz"
@@ -33,7 +37,11 @@ endif()
 
 vcpkg_find_acquire_program(NASM)
 get_filename_component(NASM_EXE_PATH ${NASM} DIRECTORY)
+if(WIN32)
 set(ENV{PATH} "${NASM_EXE_PATH};$ENV{PATH}")
+else()
+set(ENV{PATH} "${NASM_EXE_PATH}:$ENV{PATH}")
+endif()
 
 vcpkg_find_acquire_program(JOM)
 

@@ -9,8 +9,10 @@ include(vcpkg_common_functions)
     # Thrift isn't a very good candidate to become a dynamic library. No attempts are made to preserve binary compatibility, or to provide a C / COM-like interface to make binary compatibility easy.
 # endif()
 
+if(WIN32)
 vcpkg_find_acquire_program(FLEX)
 vcpkg_find_acquire_program(BISON)
+endif()
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
@@ -20,6 +22,7 @@ vcpkg_from_github(
     HEAD_REF master
 )
 
+if(WIN32)
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
     PREFER_NINJA
@@ -38,6 +41,25 @@ vcpkg_configure_cmake(
         -DFLEX_EXECUTABLE=${FLEX}
         -DBISON_EXECUTABLE=${BISON}
 )
+else()
+vcpkg_configure_cmake(
+    SOURCE_PATH ${SOURCE_PATH}
+    PREFER_NINJA
+    OPTIONS
+        -DWITH_MT=ON
+        -DWITH_SHARED_LIB=OFF
+        -DWITH_STATIC_LIB=ON
+        -DWITH_STDTHREADS=ON
+        -DBUILD_TESTING=off
+        -DBUILD_JAVA=off
+        -DBUILD_C_GLIB=off
+        -DBUILD_PYTHON=off
+        -DBUILD_CPP=on
+        -DBUILD_HASKELL=off
+        -DBUILD_TUTORIALS=off
+        -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true
+)
+endif()
 
 vcpkg_install_cmake()
 
