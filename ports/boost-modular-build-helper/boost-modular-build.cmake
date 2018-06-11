@@ -248,8 +248,10 @@ function(boost_modular_build)
         string(REPLACE "\\" "\\\\" PLATFORM_WINMD_DIR ${PLATFORM_WINMD_DIR}) # escape backslashes
 
         set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <cflags>-Zl <compileflags>\"/AI\"${PLATFORM_WINMD_DIR}\"\" <linkflags>WindowsApp.lib <cxxflags>/ZW <compileflags>-DVirtualAlloc=VirtualAllocFromApp <compileflags>-D_WIN32_WINNT=0x0A00")
-    else()
-        set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <compileflags>-D_WIN32_WINNT=0x0602")
+    elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <compileflags>-D_WIN32_WINNT=0x0602")    
+    elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(TOOLSET_OPTIONS "cxxflags=\"-std=c++11 -fPIC\"")
     endif()
 
     configure_file(${_bm_DIR}/user-config.jam ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/user-config.jam @ONLY)
@@ -276,7 +278,7 @@ function(boost_modular_build)
                 --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage
                 --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel
                 --user-config=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/user-config.jam
-                ${_bm_OPTIONS}
+                ${_bm_OPTIONS} ${TOOLSET_OPTIONS}
                 ${_bm_OPTIONS_REL}
                 variant=release
                 debug-symbols=on
@@ -294,7 +296,7 @@ function(boost_modular_build)
                 --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage
                 --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg
                 --user-config=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/user-config.jam
-                ${_bm_OPTIONS}
+                ${_bm_OPTIONS} ${TOOLSET_OPTIONS}
                 ${_bm_OPTIONS_DBG}
                 variant=debug
             WORKING_DIRECTORY ${_bm_SOURCE_PATH}/build
