@@ -34,7 +34,7 @@ vcpkg_install_cmake()
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
 
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH cmake)
+vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake)
 file(REMOVE ${CURRENT_PACKAGES_DIR}/share/pocoosp/PocoConfig.cmake)
 file(REMOVE ${CURRENT_PACKAGES_DIR}/share/pocoosp/PocoConfigVersion.cmake)
 
