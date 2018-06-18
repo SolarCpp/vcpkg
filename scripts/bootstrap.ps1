@@ -1,10 +1,25 @@
 [CmdletBinding()]
 param(
-    [ValidateNotNullOrEmpty()][string]$disableMetrics = "0",
+    $badParam,
+    [Parameter(Mandatory=$False)][switch]$disableMetrics = $false,
+    [Parameter(Mandatory=$False)][switch]$win64 = $false,
     [Parameter(Mandatory=$False)][string]$withVSPath = "",
     [Parameter(Mandatory=$False)][string]$withWinSDK = ""
 )
 Set-StrictMode -Version Latest
+# Powershell2-compatible way of forcing named-parameters
+if ($badParam)
+{
+    if ($disableMetrics -and $badParam -eq "1")
+    {
+        Write-Warning "'disableMetrics 1' is deprecated, please change to 'disableMetrics' (without '1')"
+    }
+    else
+    {
+        throw "Only named parameters are allowed"
+    }
+}
+
 $scriptsDir = split-path -parent $script:MyInvocation.MyCommand.Definition
 $withVSPath = $withVSPath -replace "\\$" # Remove potential trailing backslash
 
@@ -306,11 +321,32 @@ $msbuildExe = $msbuildExeWithPlatformToolset[0]
 $platformToolset = $msbuildExeWithPlatformToolset[1]
 $windowsSDK = getWindowsSDK -withWinSDK $withWinSDK
 
+$disableMetricsValue = "0"
+if ($disableMetrics)
+{
+    $disableMetricsValue = "1"
+}
+
+$platform = "x86"
+$vcpkgReleaseDir = "$vcpkgSourcesPath\release"
+
+if ($win64)
+{
+    $architecture=(Get-WmiObject win32_operatingsystem | Select-Object osarchitecture).osarchitecture
+    if ($architecture -ne "64-bit")
+    {
+        throw "Cannot build 64-bit on non-64-bit system"
+    }
+
+    $platform = "x64"
+    $vcpkgReleaseDir = "$vcpkgSourcesPath\x64\release"
+}
+
 $arguments = (
 "`"/p:VCPKG_VERSION=-nohash`"",
-"`"/p:DISABLE_METRICS=$disableMetrics`"",
+"`"/p:DISABLE_METRICS=$disableMetricsValue`"",
 "/p:Configuration=release",
-"/p:Platform=x86",
+"/p:Platform=$platform",
 "/p:PlatformToolset=$platformToolset",
 "/p:TargetPlatformVersion=$windowsSDK",
 "/verbosity:minimal",
@@ -351,5 +387,5 @@ Write-Host "`nBuilding vcpkg.exe... done.`n"
 
 Write-Verbose("Placing vcpkg.exe in the correct location")
 
-Copy-Item $vcpkgSourcesPath\release\vcpkg.exe $vcpkgRootDir\vcpkg.exe | Out-Null
-Copy-Item $vcpkgSourcesPath\release\vcpkgmetricsuploader.exe $vcpkgRootDir\scripts\vcpkgmetricsuploader.exe | Out-Null
+Copy-Item "$vcpkgReleaseDir\vcpkg.exe" "$vcpkgRootDir\vcpkg.exe" | Out-Null
+Copy-Item "$vcpkgReleaseDir\vcpkgmetricsuploader.exe" "$vcpkgRootDir\scripts\vcpkgmetricsuploader.exe" | Out-Null
