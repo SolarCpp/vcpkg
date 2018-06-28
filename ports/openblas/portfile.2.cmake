@@ -16,25 +16,23 @@ if(NOT VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
     message(FATAL_ERROR "openblas can only be built for x64 currently")
 endif()
 
-if(MSVC)
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     message("openblas currenly only supports dynamic library linkage")
     set(VCPKG_LIBRARY_LINKAGE "dynamic")
-endif()
 endif()
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO xianyi/OpenBLAS
-    REF v0.3.0
-    SHA512 6a982d2adc13febc162d5c0077cedc116c771409ee1dbb651da6a073e5f6a439e1d0eba0349b3b2e506b274d3014adbf48fc96625ed942a61a54a0c936576b89
+    REF v0.2.20
+    SHA512 8dfc8e8c8d456b834d2e9544c8eadd9f4770e30db8b8dd76af601ec0735fd86c9cf63dd6a03ccd23fc02ec2e05069a09875b9073dfe29f99aadab3a958ae2634
     HEAD_REF develop
 )
 
-#vcpkg_apply_patches(
-#    SOURCE_PATH ${SOURCE_PATH}
-#    PATCHES "${CMAKE_CURRENT_LIST_DIR}/c_check.patch" "${CMAKE_CURRENT_LIST_DIR}/whitespace.patch"
-#)
+vcpkg_apply_patches(
+    SOURCE_PATH ${SOURCE_PATH}
+    PATCHES "${CMAKE_CURRENT_LIST_DIR}/c_check.patch" "${CMAKE_CURRENT_LIST_DIR}/whitespace.patch"
+)
 
 find_program(GIT NAMES git git.cmd)
 
@@ -82,8 +80,7 @@ if(VCPKG_CMAKE_SYSTEM_NAME  STREQUAL "WindowsStore")
 else()
     vcpkg_configure_cmake(
         SOURCE_PATH ${SOURCE_PATH}
-        OPTIONS -DUSE_THREAD=ON -DBUILD_WITHOUT_LAPACK=ON
-        #OPTIONS -DTARGET=NEHALEM  #-DNOFORTRAN=2
+        OPTIONS -DTARGET=NEHALEM -DBUILD_WITHOUT_LAPACK=ON
         # PREFER_NINJA # Disable this option if project cannot be built with Ninja
         # OPTIONS -DUSE_THIS_IN_ALL_BUILDS=1 -DUSE_THIS_TOO=2
         # OPTIONS_RELEASE -DOPTIMIZE=1
@@ -98,14 +95,14 @@ vcpkg_install_cmake()
 # openblas do not make the config file , so I manually made this
 # but I think in most case, libraries will not include these files, they define their own used function prototypes
 # this is only to quite vcpkg
-#file(COPY ${CMAKE_CURRENT_LIST_DIR}/openblas_common.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/openblas_common.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
 
-#file(COPY ${SOURCE_PATH}/config.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
-#file(RENAME ${CURRENT_PACKAGES_DIR}/include/config.h ${CURRENT_PACKAGES_DIR}/include/openblas_config.h)
+file(COPY ${SOURCE_PATH}/config.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(RENAME ${CURRENT_PACKAGES_DIR}/include/config.h ${CURRENT_PACKAGES_DIR}/include/openblas_config.h)
 
-#file(READ ${SOURCE_PATH}/cblas.h CBLAS_H)
-#string(REPLACE "#include \"common.h\"" "#include \"openblas_common.h\"" CBLAS_H "${CBLAS_H}")
-#file(WRITE ${CURRENT_PACKAGES_DIR}/include/cblas.h "${CBLAS_H}")
+file(READ ${SOURCE_PATH}/cblas.h CBLAS_H)
+string(REPLACE "#include \"common.h\"" "#include \"openblas_common.h\"" CBLAS_H "${CBLAS_H}")
+file(WRITE ${CURRENT_PACKAGES_DIR}/include/cblas.h "${CBLAS_H}")
 
 # openblas is BSD
 file(COPY ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/openblas)
