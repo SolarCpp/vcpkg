@@ -17,6 +17,7 @@ vcpkg_from_github(
 
 string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "dynamic" GTEST_FORCE_SHARED_CRT)
 
+if(WIN32)
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
     PREFER_NINJA
@@ -25,7 +26,21 @@ vcpkg_configure_cmake(
         -DBUILD_GTEST=ON
         -DCMAKE_DEBUG_POSTFIX=d
         -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
+        -DBUILD_SHARED_LIBS=ON
 )
+else()
+vcpkg_configure_cmake(
+    SOURCE_PATH ${SOURCE_PATH}
+    PREFER_NINJA
+    OPTIONS 
+        -DBUILD_GMOCK=ON
+        -DBUILD_GTEST=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+        -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
+        -DBUILD_SHARED_LIBS=ON
+        -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true
+)
+endif()
 
 set(ENV{_CL_} "/D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING")
 

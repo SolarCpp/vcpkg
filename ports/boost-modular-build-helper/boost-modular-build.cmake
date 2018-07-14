@@ -40,8 +40,13 @@ function(boost_modular_build)
         set(BOOST_LIB_DEBUG_SUFFIX -vc140-mt-gd.lib)
     else()
         set(BOOST_LIB_PREFIX lib)
-        set(BOOST_LIB_RELEASE_SUFFIX .a)
-        set(BOOST_LIB_DEBUG_SUFFIX .a)
+        if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+            set(BOOST_LIB_RELEASE_SUFFIX .so)
+            set(BOOST_LIB_DEBUG_SUFFIX .so)
+        else()
+            set(BOOST_LIB_RELEASE_SUFFIX .a)
+            set(BOOST_LIB_DEBUG_SUFFIX .a)
+        endif()
     endif()
 
     if(EXISTS "${_bm_SOURCE_PATH}/build/Jamfile.v2")
@@ -81,9 +86,47 @@ function(boost_modular_build)
         )
         vcpkg_install_cmake()
 
-        if(NOT EXISTS ${CURRENT_PACKAGES_DIR}/lib)
-            message(FATAL_ERROR "No libraries were produced. This indicates a failure while building the boost library.")
+        if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+            message(STATUS "Packaging ${TARGET_TRIPLET}-rel")
+            file(GLOB REL_LIBS
+            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.lib
+            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.a
+            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.so*
+            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage/lib/*.so*
+            )
+            file(COPY ${REL_LIBS}
+                DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+            if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+                file(GLOB REL_DLLS ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.dll)
+                file(COPY ${REL_DLLS}
+                    DESTINATION ${CURRENT_PACKAGES_DIR}/bin
+                    FILES_MATCHING PATTERN "*.dll")
+            endif()
+            message(STATUS "Packaging ${TARGET_TRIPLET}-rel done")
         endif()
+
+        if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+            message(STATUS "Packaging ${TARGET_TRIPLET}-dbg")
+            file(GLOB DBG_LIBS
+                ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.lib
+                ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.a
+                ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.so*
+                ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage/lib/*.so*
+            )
+            file(COPY ${DBG_LIBS}
+                DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
+            if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+                file(GLOB DBG_DLLS ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.dll)
+                file(COPY ${DBG_DLLS}
+                    DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin
+                    FILES_MATCHING PATTERN "*.dll")
+            endif()
+            message(STATUS "Packaging ${TARGET_TRIPLET}-dbg done")
+        endif()
+
+        #if(NOT EXISTS ${CURRENT_PACKAGES_DIR}/lib)
+        #    message(FATAL_ERROR "No libraries were produced. This indicates a failure while building the boost library.")
+        #endif()
         return()
     endif()
 
@@ -205,8 +248,10 @@ function(boost_modular_build)
         string(REPLACE "\\" "\\\\" PLATFORM_WINMD_DIR ${PLATFORM_WINMD_DIR}) # escape backslashes
 
         set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <cflags>-Zl <compileflags>\"/AI\"${PLATFORM_WINMD_DIR}\"\" <linkflags>WindowsApp.lib <cxxflags>/ZW <compileflags>-DVirtualAlloc=VirtualAllocFromApp <compileflags>-D_WIN32_WINNT=0x0A00")
-    else()
-        set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <compileflags>-D_WIN32_WINNT=0x0602")
+    elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <compileflags>-D_WIN32_WINNT=0x0602")    
+    elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(TOOLSET_OPTIONS "cxxflags=\"-std=c++11 -fPIC\"")
     endif()
 
     configure_file(${_bm_DIR}/user-config.jam ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/user-config.jam @ONLY)
@@ -233,7 +278,7 @@ function(boost_modular_build)
                 --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage
                 --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel
                 --user-config=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/user-config.jam
-                ${_bm_OPTIONS}
+                ${_bm_OPTIONS} ${TOOLSET_OPTIONS}
                 ${_bm_OPTIONS_REL}
                 variant=release
                 debug-symbols=on
@@ -251,7 +296,7 @@ function(boost_modular_build)
                 --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage
                 --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg
                 --user-config=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/user-config.jam
-                ${_bm_OPTIONS}
+                ${_bm_OPTIONS} ${TOOLSET_OPTIONS}
                 ${_bm_OPTIONS_DBG}
                 variant=debug
             WORKING_DIRECTORY ${_bm_SOURCE_PATH}/build
@@ -260,41 +305,7 @@ function(boost_modular_build)
         message(STATUS "Building ${TARGET_TRIPLET}-dbg done")
     endif()
 
-    if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
-        message(STATUS "Packaging ${TARGET_TRIPLET}-rel")
-        file(GLOB REL_LIBS
-            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.lib
-            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.a
-            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.so
-        )
-        file(COPY ${REL_LIBS}
-            DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
-        if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-            file(GLOB REL_DLLS ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/boost/build/*/*.dll)
-            file(COPY ${REL_DLLS}
-                DESTINATION ${CURRENT_PACKAGES_DIR}/bin
-                FILES_MATCHING PATTERN "*.dll")
-        endif()
-        message(STATUS "Packaging ${TARGET_TRIPLET}-rel done")
-    endif()
 
-    if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
-        message(STATUS "Packaging ${TARGET_TRIPLET}-dbg")
-        file(GLOB DBG_LIBS
-            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.lib
-            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.a
-            ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.so
-        )
-        file(COPY ${DBG_LIBS}
-            DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
-        if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-            file(GLOB DBG_DLLS ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/boost/build/*/*.dll)
-            file(COPY ${DBG_DLLS}
-                DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin
-                FILES_MATCHING PATTERN "*.dll")
-        endif()
-        message(STATUS "Packaging ${TARGET_TRIPLET}-dbg done")
-    endif()
 
     file(GLOB INSTALLED_LIBS ${CURRENT_PACKAGES_DIR}/debug/lib/*.lib ${CURRENT_PACKAGES_DIR}/lib/*.lib)
     foreach(LIB ${INSTALLED_LIBS})
