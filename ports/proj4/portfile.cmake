@@ -67,7 +67,7 @@ if(NOT VCPKG_CMAKE_SYSTEM_NAME OR VCPKG_CMAKE_SYSTEM_NAME STREQUAL "WindowsStore
         file(RENAME ${CURRENT_PACKAGES_DIR}/debug/lib/proj_4_9_d.lib  ${CURRENT_PACKAGES_DIR}/debug/lib/projd.lib)
     endif()
 endif()
-endif()
+#endif()
 
 # Remove duplicate headers installed from debug build
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
