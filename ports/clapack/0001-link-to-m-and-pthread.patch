@@ -1,0 +1,38 @@
+From e72e0d968fbfb3fd26e43b8694105e7ab67fb38d Mon Sep 17 00:00:00 2001
+From: tony <13717910964@163.com>
+Date: Thu, 28 Jun 2018 23:10:24 +0800
+Subject: [PATCH] link to m and pthread
+
+---
+ CMakeLists.txt | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8c53def..4983816 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -6,6 +6,11 @@ include(CTest)
+ # BLAS_LIBRARIES
+ find_package(BLAS REQUIRED)
+ 
++if(WIN32)
++else()
++set(BLAS_LIBRARIES ${BLAS_LIBRARIES} m pthread)
++endif()
++
+ if(WIN32 AND NOT CYGWIN)
+   set(SECOND_SRC  ${CLAPACK_SOURCE_DIR}/INSTALL/winsecond.c)
+   set(DSECOND_SRC  ${CLAPACK_SOURCE_DIR}/INSTALL/windsecnd.c)
+@@ -38,6 +43,6 @@ include(CPack)
+ #   ${CLAPACK_BINARY_DIR}/clapack-config.cmake @ONLY)
+ 
+ install(FILES 
+-          ${CMAKE_CURRENT_LIST_DIR}/include/clapack.h
+-          ${CMAKE_CURRENT_LIST_DIR}/include/f2c.h 
++          ${CMAKE_CURRENT_LIST_DIR}/INCLUDE/clapack.h
++          ${CMAKE_CURRENT_LIST_DIR}/INCLUDE/f2c.h 
+         DESTINATION include)
+\ No newline at end of file
+-- 
+2.7.4
+
