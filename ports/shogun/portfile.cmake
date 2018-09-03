@@ -43,6 +43,7 @@ vcpkg_configure_cmake(
         -DLICENSE_GPL_SHOGUN=OFF
         # Conflicting definitions in OpenBLAS and Eigen
         -DENABLE_EIGEN_LAPACK=OFF
+        -DLIBSHOGUN_BUILD_STATIC=ON
 
         -DCMAKE_DISABLE_FIND_PACKAGE_JSON=TRUE
         -DCMAKE_DISABLE_FIND_PACKAGE_ViennaCL=TRUE
