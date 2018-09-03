@@ -1,0 +1,14 @@
+diff --git a/dlib/CMakeLists.txt b/dlib/CMakeLists.txt
+index f1d3376..e4596d7 100644
+--- a/dlib/CMakeLists.txt
++++ b/dlib/CMakeLists.txt
+@@ -470,7 +470,8 @@ if (NOT TARGET dlib)
+          # if this is an APPLE system because apparently it's broken (as of 2015/01/01).
+          if (JPEG_FOUND AND NOT ("${JPEG_INCLUDE_DIR}" MATCHES "(.*)(Ana|ana|mini)conda(.*)"))
+             set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARY})
+-            CHECK_FUNCTION_EXISTS(jpeg_read_header LIBJPEG_IS_GOOD)
++            #CHECK_FUNCTION_EXISTS(png_create_read_struct LIBPNG_IS_GOOD)
++            set(LIBPNG_IS_GOOD TRUE)
+          endif()
+          if (JPEG_FOUND AND LIBJPEG_IS_GOOD AND NOT APPLE)
+             include_directories(${JPEG_INCLUDE_DIR})
