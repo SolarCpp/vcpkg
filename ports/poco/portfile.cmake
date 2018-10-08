@@ -6,15 +6,11 @@ vcpkg_from_github(
     REF poco-1.9.0-release
     SHA512 de2346d62b2e89ba04abe62a83f6ede7a496e80bcbe53a880a1aa8e87a8ebd9a430dd70fdc6aada836bb1021c6df21375fd0cbcf62dbb6e29a2f65d6d90cf2b9
     HEAD_REF master
-)
-
-vcpkg_apply_patches(
-    SOURCE_PATH ${SOURCE_PATH}
     PATCHES
-        ${CMAKE_CURRENT_LIST_DIR}/config_h.patch
-        ${CMAKE_CURRENT_LIST_DIR}/find_pcre.patch
-        ${CMAKE_CURRENT_LIST_DIR}/foundation-public-include-pcre.patch
-        ${CMAKE_CURRENT_LIST_DIR}/fix-static-internal-pcre.patch
+        config_h.patch
+        find_pcre.patch
+        foundation-public-include-pcre.patch
+        fix-static-internal-pcre.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" POCO_STATIC)
@@ -45,36 +41,27 @@ vcpkg_configure_cmake(
 
 vcpkg_install_cmake()
 
-
-if(WIN32)
-    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools)
+file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools)
+if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/cpspc.exe")
     file(RENAME ${CURRENT_PACKAGES_DIR}/bin/cpspc.exe ${CURRENT_PACKAGES_DIR}/tools/cpspc.exe)
     file(RENAME ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.exe ${CURRENT_PACKAGES_DIR}/tools/f2cpsp.exe)
-elseif(LINUX)
-    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/tools)
-    file(COPY ${CURRENT_PACKAGES_DIR}/bin/cpspc ${CURRENT_PACKAGES_DIR}/tools/cpspc)
-    file(COPY ${CURRENT_PACKAGES_DIR}/bin/f2cpsp ${CURRENT_PACKAGES_DIR}/tools/f2cpsp)
+else()
+    file(RENAME ${CURRENT_PACKAGES_DIR}/bin/cpspc ${CURRENT_PACKAGES_DIR}/tools/cpspc)
+    file(RENAME ${CURRENT_PACKAGES_DIR}/bin/f2cpsp ${CURRENT_PACKAGES_DIR}/tools/f2cpsp)
 endif()
-
 
 if (VCPKG_LIBRARY_LINKAGE STREQUAL static)
     file(REMOVE_RECURSE 
         ${CURRENT_PACKAGES_DIR}/bin
         ${CURRENT_PACKAGES_DIR}/debug/bin)
 else()
-    if(WIN32)
-        file(REMOVE 
-            ${CURRENT_PACKAGES_DIR}/bin/cpspc.pdb
-            ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.pdb
-            ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.exe
-            ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.pdb
-            ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.exe
-            ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.pdb)
-    elseif(LINUX)
-        file(REMOVE_RECURSE 
-            ${CURRENT_PACKAGES_DIR}/bin
-            ${CURRENT_PACKAGES_DIR}/debug/bin)
-    endif()
+    file(REMOVE 
+        ${CURRENT_PACKAGES_DIR}/bin/cpspc.pdb
+        ${CURRENT_PACKAGES_DIR}/bin/f2cpsp.pdb
+        ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.exe
+        ${CURRENT_PACKAGES_DIR}/debug/bin/cpspc.pdb
+        ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.exe
+        ${CURRENT_PACKAGES_DIR}/debug/bin/f2cpsp.pdb)
 endif()
 
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
