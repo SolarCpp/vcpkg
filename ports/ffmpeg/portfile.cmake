@@ -1,9 +1,12 @@
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/ffmpeg-3.3.3)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/ffmpeg-4.0.2)
 vcpkg_download_distfile(ARCHIVE
-    URLS "http://ffmpeg.org/releases/ffmpeg-3.3.3.tar.bz2"
-    FILENAME "ffmpeg-3.3.3.tar.bz2"
-    SHA512 1cc63bf73356f4e618c0d3572a216bdf5689f10deff56b4262f6d740b0bee5a4b3eac234f45fca3d4d2da77903a507b4fba725b76d2d2070f31b6dae9e7a2dab
+#    URLS "http://ffmpeg.org/releases/ffmpeg-3.3.3.tar.bz2"
+#    FILENAME "ffmpeg-3.3.3.tar.bz2"
+#    SHA512 1cc63bf73356f4e618c0d3572a216bdf5689f10deff56b4262f6d740b0bee5a4b3eac234f45fca3d4d2da77903a507b4fba725b76d2d2070f31b6dae9e7a2dab
+     URLS "http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.xz"
+     FILENAME "ffmpeg-4.0.2.tar.xz"
+     SHA512 2dc2b8c66d9c31b6d06da5da336ef45415e3c24fac8c9063cd47f7d4cf688ec4846f88cdd9e841b956cea81e56bb3c6b7655aef503400c7367c32910c28990ac
 )
 
 if (${SOURCE_PATH} MATCHES " ")
@@ -59,11 +62,11 @@ else()
     set(OPTIONS "${OPTIONS} --disable-ffplay")
 endif()
 
-if("ffserver" IN_LIST FEATURES)
-    set(OPTIONS "${OPTIONS} --enable-ffserver")
-else()
-    set(OPTIONS "${OPTIONS} --disable-ffserver")
-endif()
+# if("ffserver" IN_LIST FEATURES)
+#     set(OPTIONS "${OPTIONS} --enable-ffserver")
+# else()
+#     set(OPTIONS "${OPTIONS} --disable-ffserver")
+# endif()
 
 if("ffprobe" IN_LIST FEATURES)
     set(OPTIONS "${OPTIONS} --enable-ffprobe")
@@ -205,3 +208,4 @@ file(RENAME ${CURRENT_PACKAGES_DIR}/share/ffmpeg/COPYING.LGPLv2.1 ${CURRENT_PACK
 
 # Used by OpenCV
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/FindFFMPEG.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/ffmpeg)
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/vcpkg-cmake-wrapper.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/ffmpeg)

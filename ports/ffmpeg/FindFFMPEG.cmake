@@ -2,7 +2,7 @@ include(FindPackageHandleStandardArgs)
 
 find_path(FFMPEG_INCLUDE_DIRS NAMES libavcodec/avcodec.h)
 unset(FFMPEG_LIBRARIES)
-foreach(FFMPEG_SUBLIBRARY avformat avdevice avcodec avutil swscale)
+foreach(FFMPEG_SUBLIBRARY avformat avdevice avcodec avutil swscale avfilter postproc swresample swscale)
   find_library(FFMPEG_lib${FFMPEG_SUBLIBRARY}_LIBRARY NAMES ${FFMPEG_SUBLIBRARY})
   list(APPEND FFMPEG_LIBRARIES ${FFMPEG_lib${FFMPEG_SUBLIBRARY}_LIBRARY})
 endforeach()
